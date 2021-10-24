@@ -1,16 +1,49 @@
 import 'dart:html';
+import 'dart:async';
 import 'package:http/http.dart' as http;
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
+
+Future<Intrebare> fetchAlbum() async {
+  final response =
+      await http.get(Uri.parse('https://proiect.sanvois.ro/database.php'));
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    return Intrebare.fromJson(jsonDecode(response.body));
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to load album');
+  }
+}
 
 class Intrebare {
   final int id;
   final String text;
-  final String image;
+  final String imagine;
   final int raspunsCorect;
   final String popUp;
 
-  Intrebare(this.id, this.text, this.image, this.raspunsCorect, this.popUp);
+  Intrebare(
+      {required this.id,
+      required this.text,
+      required this.imagine,
+      required this.raspunsCorect,
+      required this.popUp});
+
+  factory Intrebare.fromJson(Map<String, dynamic> json) {
+    var _intrebari = [];
+    //foreach
+    return Intrebare(
+      id: json['id'],
+      text: json['text'],
+      imagine: json['imagine'],
+      raspunsCorect: json['raspunsCorect'],
+      popUp: json['popUp'],
+    );
+  }
 }
 
 class Page2 extends StatefulWidget {
@@ -26,65 +59,16 @@ class Page2 extends StatefulWidget {
 }
 
 class _Page2State extends State<Page2> {
-  final intrebari = [
-    Intrebare(
-        1,
-        'Adevarat sau fals? Aron era cu trei ani mai mare decat Moise. (Exodul 7:7)',
-        'assets/images/bg_q/aron.jpg',
-        1,
-        'Adevarat'), //aici trecem raspunsul corect, 1 butonul 1, 2 = butonul 2 s.a.m.d, in cazul nostru 1=adevarat, 2=fasls
-    Intrebare(
-        2,
-        'Adevarat sau fals? Saul a fost un om lipsit de vigoare. (2 Samuel 1:23)',
-        'assets/images/bg_q/saul.jpg',
-        2,
-        'Saul a fost asemanat cu acvilele iuti si cu leii puternici.'),
-    Intrebare(
-        3,
-        'Adevarat sau fals? Samuel a fost singurul copil al Anei. (1 Samuel 2:21)',
-        'assets/images/bg_q/ana.jpg',
-        2,
-        'Mai taziu, Ana a avut inca trei fii si doua fiice.'),
-    Intrebare(
-        4,
-        'Adevarat sau fals? Manoah a pregatit o masa pentru inger. (Judecatorii 13:15, 16, 19)',
-        'assets/images/bg_q/manoah.jpg',
-        2,
-        'El i-a oferit o ofranda arsa lui Iehova.'),
-    Intrebare(
-        5,
-        'Adevarat sau fals? Ghedeon a refuzat sa guvereneze peste Israel. (Judecatorii 8:22, 23)',
-        'assets/images/bg_q/ghedeon.jpg',
-        1,
-        'Adevarat'),
-    Intrebare(6, 'Adevarat sau fals? Naomi s-a casatorit cu Boaz. (Rut 14:3)',
-        'assets/images/bg_q/naomi.jpg', 2, 'Rut s-a casatorit cu Boaz.'),
-    Intrebare(
-        7,
-        'Adevarat sau fals? Rahav a fost stra-strabunica regelui David',
-        'assets/images/bg_q/rahav.jpg',
-        1,
-        'Adevarat'),
-    Intrebare(
-        8,
-        'Adevarat sau fals? Asemenea tatalui lor, fii lui Core s-au razvratit impotriva lui Moise si a lui Aron si au murit impreuna cu Core (Numerele 26:10, 11)',
-        'assets/images/bg_q/core.jpg',
-        2,
-        'Fals'),
-    Intrebare(
-        9,
-        'Adevarat sau fals? Tatal Seforei era preot (Exodul 2:16, 21).',
-        'assets/images/bg_q/sefora.jpg',
-        1,
-        'Adevarat'),
+  late Future<Intrebare> futureAlbum;
 
-    Intrebare(
-        10,
-        'Adevarat sau fals? Faraonul a fost un om umil(Exodul 14:19, 20)',
-        'assets/images/bg_q/faraonul.jpg',
-        2,
-        'Faraonul s-a purtat cu trufie.'),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    //futureAlbum = fetchAlbum();
+    //print(futureAlbum);
+
+    //_fetchIntrebari();
+  }
 
   int _intrebare = 0;
   var _btn1Color = MaterialStateProperty.all(Colors.grey[400]);
@@ -93,6 +77,30 @@ class _Page2State extends State<Page2> {
   var _isDisabled = true;
   var _answered = false;
 
+  var intrebari = [
+    Intrebare(
+      id: 1,
+      text: "text",
+      imagine: "assets/images/bg_q/rut.jpg",
+      raspunsCorect: 1,
+      popUp: "popup",
+    ),
+  ];
+
+  Future<void> _fetchIntrebari() async {
+    final response =
+        await http.get(Uri.parse("https://proiect.sanvois.ro/database.php"));
+    final data = [
+      Intrebare.fromJson(json.decode(response.body)),
+    ];
+
+    setState(() {
+      print(intrebari);
+      intrebari = data;
+      print(intrebari);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -100,7 +108,7 @@ class _Page2State extends State<Page2> {
         body: Container(
           child: Column(
             children: [
-              Image.asset(intrebari[_intrebare].image),
+              Image.asset(intrebari[_intrebare].imagine),
               SizedBox(
                 height: 25,
               ),
